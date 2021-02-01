@@ -59,9 +59,9 @@ def login():
 @requires_auth
 def dashboard():
     """Route returns data about the user's dashboard."""
-    req = request.get_json()
+    req = request.headers.get("Authorization", None)
 
-    token = req["authorization"]
+    token = req.split()[1]
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
 
     # Gets user's devices list to display on table
