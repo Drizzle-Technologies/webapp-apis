@@ -75,9 +75,13 @@ class DeviceDao:
 
         dict_devices = [device.__dict__ for device in obj_devices]
 
-        # Deletes extra attribute we don't use
-        for device in dict_devices:
+        for i, device in enumerate(dict_devices):
+            # Deletes extra attribute we don't use
             device.pop('_sa_instance_state')
+            device.pop('ID_user')
+
+            # Iterates over the device keys and return them lower case
+            dict_devices[i] = {k.lower(): v for k, v in device.items()}
 
         return dict_devices
 
