@@ -71,7 +71,7 @@ class DeviceDao:
     @staticmethod
     def get_user_devices(ID_user):
         """Gets the devices from a specific user through the user's id"""
-        obj_devices = Device.query.filter_by(ID_user=ID_user).all()
+        obj_devices = Device.query.filter_by(ID_user=ID_user).order_by(Device.ID).all()
 
         dict_devices = [device.__dict__ for device in obj_devices]
 
