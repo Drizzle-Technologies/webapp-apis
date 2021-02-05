@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
 from flask import current_app as app
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 
 import jwt
@@ -38,7 +38,11 @@ def login():
     verify_user(user)
     verify_password(user, password)
 
-    payload = {'userId': user.ID}
+    payload = {
+        'userId': user.ID,
+        "exp": datetime.utcnow() + timedelta(minutes=15)
+    }
+
     token = jwt.encode(payload, secret_key, algorithm="HS256")
     res = {
             'authorization': token,
