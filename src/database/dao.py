@@ -1,6 +1,8 @@
 from .database import db, Device, User, DevicesOccupancy
+from .blacklist import red
 from ..helper.helper import calculate_max_people
 from werkzeug.security import generate_password_hash
+import hashlib
 import secrets
 
 
@@ -144,3 +146,32 @@ class DeviceOccupancyDao:
         device.current_occupancy = current_occupancy
 
         db.session.commit()
+
+
+class TokenDao:
+
+    @staticmethod
+    def generate_hash_token(token):
+        sha = hashlib.sha256()
+        sha.update(token.encode('ascii'))
+        token_hash = sha.hexdigest()
+
+        return token_hash
+
+    def add_to_blacklist(self, token):
+
+        token_hash = self.generate_hash_token(token)
+        red.set(token_hash, "")
+
+        return True
+
+    def search_in_blacklist(self, token):
+        is_in_blacklist = False
+
+        token_hash = self.generate_hash_token(token)
+        red.get(token_hash)
+
+        if token_hash:
+            is_in_blacklist = True
+
+        return is_in_blacklist
