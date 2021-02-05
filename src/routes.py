@@ -6,7 +6,7 @@ import pytz
 
 import jwt
 
-from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao
+from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
 from .helper.helper import calculate_max_people, is_not_logged_in, verify_user, verify_password
 
@@ -19,6 +19,7 @@ api = Blueprint('api', __name__)
 user_dao = UserDao()
 devices_dao = DeviceDao()
 devices_occupancy_dao = DeviceOccupancyDao()
+token_dao = TokenDao()
 
 # This is how Flask routes work. The app.route decorator sets a route to our site. For example: imagine our app is
 # google.com. We can add a route "/images" (google.com/images) to create a new page for image search.
@@ -52,11 +53,16 @@ def login():
     return jsonify(res), 200
 
 
-# @app.route('/logout')
-# def logout():
-#     # Clearing session
-#     session.clear()
-#     return redirect('/')
+@api.route('/logout')
+@requires_auth
+def logout():
+    auth = request.headers.get("Authorization", None)
+    token_dao.add_to_blacklist(auth)
+    res = {
+        'code': 'success',
+        'description': 'logout successful'
+    }
+    return jsonify(res), 200
 
 
 @api.route('/dashboard')

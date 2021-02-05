@@ -2,6 +2,7 @@ import os
 from flask import request
 from functools import wraps
 import jwt
+from ..database.dao import TokenDao
 
 from ..errors.AuthError import AuthError
 
@@ -40,6 +41,7 @@ def requires_auth(f):
     """
     @wraps(f)
     def decorated(*args, **kwargs):
+        token_dao = TokenDao()
         token = get_token_auth_header()
 
         try:
@@ -48,9 +50,14 @@ def requires_auth(f):
                 os.environ["SECRET"],
                 algorithms=["HS256"],
             )
+            token_dao.search_in_blacklist(token)
         except jwt.ExpiredSignatureError:
             raise AuthError({"code": "token_expired",
                             "description": "token is expired"}, 401)
+
+        except jwt.InvalidTokenError:
+            raise AuthError({"code": "invalid_token_error",
+                             "description": "invalid token"}, 401)
 
         except Exception:
             raise AuthError({"code": "invalid_header",

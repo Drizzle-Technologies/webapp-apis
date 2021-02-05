@@ -4,6 +4,7 @@ from ..helper.helper import calculate_max_people
 from werkzeug.security import generate_password_hash
 import hashlib
 import secrets
+import jwt
 
 
 class UserDao:
@@ -166,12 +167,10 @@ class TokenDao:
         return True
 
     def search_in_blacklist(self, token):
-        is_in_blacklist = False
-
         token_hash = self.generate_hash_token(token)
-        red.get(token_hash)
+        res = red.get(token_hash)
 
-        if token_hash:
-            is_in_blacklist = True
+        if not res:
+            raise jwt.InvalidTokenError
 
-        return is_in_blacklist
+        return True
