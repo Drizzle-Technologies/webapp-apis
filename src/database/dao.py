@@ -168,9 +168,9 @@ class TokenDao:
 
     def search_in_blacklist(self, token):
         token_hash = self.generate_hash_token(token)
-        res = red.get(token_hash)
+        res = red.exists(token_hash)
 
-        if not res:
+        if res:
             raise jwt.InvalidTokenError
 
         return True

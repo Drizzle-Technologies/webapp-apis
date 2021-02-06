@@ -56,8 +56,10 @@ def login():
 @api.route('/logout')
 @requires_auth
 def logout():
-    auth = request.headers.get("Authorization", None)
-    token_dao.add_to_blacklist(auth)
+    req = request.headers.get("Authorization", None)
+    token = req.split()[1]
+
+    token_dao.add_to_blacklist(token)
     res = {
         'code': 'success',
         'description': 'logout successful'
