@@ -2,7 +2,7 @@ import os
 from flask import request
 from functools import wraps
 import jwt
-from ..database.dao import TokenDao
+from ..database.dao import TokenDao, DeviceDao
 
 from ..errors.AuthError import AuthError
 
@@ -51,6 +51,7 @@ def requires_auth(f):
                 algorithms=["HS256"],
             )
             token_dao.search_in_blacklist(token)
+
         except jwt.ExpiredSignatureError:
             raise AuthError({"code": "token_expired",
                             "description": "token is expired"}, 401)

@@ -21,6 +21,7 @@ devices_dao = DeviceDao()
 devices_occupancy_dao = DeviceOccupancyDao()
 token_dao = TokenDao()
 
+
 # This is how Flask routes work. The app.route decorator sets a route to our site. For example: imagine our app is
 # google.com. We can add a route "/images" (google.com/images) to create a new page for image search.
 
@@ -80,6 +81,34 @@ def dashboard():
     devices = devices_dao.get_user_devices(payload["userId"])
 
     res = {'devices': devices}
+    return jsonify(res), 200
+
+
+@api.route('/device/create')
+@requires_auth
+def device_create():
+    """Route for a user to create a new device."""
+    req = request.headers.get("Authorization", None)
+    token = req.split()[1]
+
+    device_data = request.get_json()
+    shopName = device_data["shopName"]
+    area = float(device_data["area"])
+
+    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+    userID = payload["userId"]
+
+    maxPeople = calculate_max_people(area)
+
+    values = userID, shopName, area, maxPeople
+
+    devices_dao.add_device(values)
+
+    res = {
+        'code': 'success',
+        'description': 'new device created'
+    }
+
     return jsonify(res), 200
 
 
