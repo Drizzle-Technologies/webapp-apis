@@ -92,15 +92,15 @@ def device_create():
     token = req.split()[1]
 
     device_data = request.get_json()
-    shopName = device_data["shopName"]
+    shop_name = device_data["shopName"]
     area = float(device_data["area"])
 
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-    userID = payload["userId"]
+    user_ID = payload["userId"]
 
-    maxPeople = calculate_max_people(area)
+    max_people = calculate_max_people(area)
 
-    values = userID, shopName, area, maxPeople
+    values = user_ID, shop_name, area, max_people
 
     devices_dao.add_device(values)
 

@@ -2,7 +2,7 @@ import os
 from flask import request
 from functools import wraps
 import jwt
-from ..database.dao import TokenDao, DeviceDao
+from ..database.dao import TokenDao
 
 from ..errors.AuthError import AuthError
 
