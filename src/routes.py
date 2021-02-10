@@ -84,7 +84,7 @@ def dashboard():
     return jsonify(res), 200
 
 
-@api.route('/device/create')
+@api.route('/device/create', methods=["POST"])
 @requires_auth
 def device_create():
     """Route for a user to create a new device."""
@@ -102,7 +102,7 @@ def device_create():
 
     values = user_ID, shop_name, area, max_people
 
-    devices_dao.add_device(values)
+    # devices_dao.add_device(values)
 
     res = {
         'code': 'success',
