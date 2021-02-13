@@ -84,7 +84,7 @@ def dashboard():
     return jsonify(res), 200
 
 
-@api.route('/device/create')
+@api.route('/device/create', methods=["POST"])
 @requires_auth
 def device_create():
     """Route for a user to create a new device."""
@@ -107,6 +107,37 @@ def device_create():
     res = {
         'code': 'success',
         'description': 'new device created'
+    }
+
+    return jsonify(res), 200
+
+@api.route('device/edit', methods=["PATCH"])
+def device_edit():
+
+    device_data = request.get_json()
+    ID_device = device_data["DeviceID"]
+    new_area = float(device_data["NewArea"])
+
+    devices_dao.update_area(ID_device, new_area)
+
+    res = {
+        'code': 'success',
+        'description': 'device edited'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('device/delete', methods=["DELETE"])
+def device_delete():
+    device_data = request.get_json()
+    ID_device = device_data["DeviceID"]
+
+    devices_dao.delete_device(ID_device)
+
+    res = {
+        'code': 'success',
+        'description': 'device deleted'
     }
 
     return jsonify(res), 200
