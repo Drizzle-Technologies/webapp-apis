@@ -115,6 +115,7 @@ def device_create():
 @api.route('device/edit', methods=["PATCH"])
 @requires_auth
 def device_edit():
+    """Route for a user to edit a device values."""
     device_data = request.get_json()
     ID_device = device_data["DeviceID"]
     new_area = float(device_data["NewArea"])
@@ -132,6 +133,7 @@ def device_edit():
 @api.route('device/delete', methods=["DELETE"])
 @requires_auth
 def device_delete():
+    """Route for a user to delete a device's list."""
     device_data = request.get_json()
     ID_list = device_data["idList"]
 
