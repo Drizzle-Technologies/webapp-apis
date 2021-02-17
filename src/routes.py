@@ -111,9 +111,10 @@ def device_create():
 
     return jsonify(res), 200
 
-@api.route('device/edit', methods=["PATCH"])
-def device_edit():
 
+@api.route('device/edit', methods=["PATCH"])
+@requires_auth
+def device_edit():
     device_data = request.get_json()
     ID_device = device_data["DeviceID"]
     new_area = float(device_data["NewArea"])
@@ -129,11 +130,13 @@ def device_edit():
 
 
 @api.route('device/delete', methods=["DELETE"])
+@requires_auth
 def device_delete():
     device_data = request.get_json()
-    ID_device = device_data["DeviceID"]
+    ID_list = device_data["idList"]
 
-    devices_dao.delete_device(ID_device)
+    for ID in ID_list:
+        devices_dao.delete_device(ID)
 
     res = {
         'code': 'success',
