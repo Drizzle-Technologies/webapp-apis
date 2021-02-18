@@ -102,7 +102,7 @@ def device_create():
 
     values = user_ID, shop_name, area, max_people
 
-    # devices_dao.add_device(values)
+    devices_dao.add_device(values)
 
     res = {
         'code': 'success',
