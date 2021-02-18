@@ -112,6 +112,42 @@ def device_create():
     return jsonify(res), 200
 
 
+@api.route('device/edit', methods=["PATCH"])
+@requires_auth
+def device_edit():
+    """Route for a user to edit a device values."""
+    device_data = request.get_json()
+    ID_device = device_data["deviceID"]
+    new_area = int(device_data["newArea"])
+
+    devices_dao.update_area(ID_device, new_area)
+
+    res = {
+        'code': 'success',
+        'description': 'device edited'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('device/delete', methods=["DELETE"])
+@requires_auth
+def device_delete():
+    """Route for a user to delete a device's list."""
+    device_data = request.get_json()
+    ID_list = device_data["idList"]
+
+    for ID in ID_list:
+        devices_dao.delete_device(ID)
+
+    res = {
+        'code': 'success',
+        'description': 'device deleted'
+    }
+
+    return jsonify(res), 200
+
+
 # @app.route('/create_user', methods=['POST'])
 # def create_user():
 #     """This route creates a new user."""
