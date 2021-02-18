@@ -117,7 +117,7 @@ def device_create():
 def device_edit():
     """Route for a user to edit a device values."""
     device_data = request.get_json()
-    ID_device = device_data["DeviceID"]
+    ID_device = device_data["deviceID"]
     new_area = int(device_data["newArea"])
 
     devices_dao.update_area(ID_device, new_area)
