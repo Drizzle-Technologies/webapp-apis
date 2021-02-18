@@ -168,58 +168,6 @@ def device_delete():
 #     return redirect(url_for('dashboard'))
 #
 #
-# @app.route('/save_device', methods=["POST"])
-# def save_device():
-#     """This route is used to save new devices on the database. It cannot be directly accessed."""
-#
-#     # Each form input is saved in a different variable.
-#     ID_user = session["logged_in"]
-#     shop_name = request.form['shop_name']
-#     area = int(request.form['area'])
-#     max_people = calculate_max_people(area)
-#
-#     # We then form a tuple, which is roughly an immutable vector.
-#     new_device = (ID_user, shop_name, area, max_people)
-#
-#     # Finally we add the device to the database
-#     device_added = devices_dao.add_device(new_device)
-#     if device_added:
-#         flash("O dispositivo foi adicionado!", "alert-success")
-#
-#     # And we are redirected to our index page.
-#     return redirect(url_for('dashboard'))
-#
-#
-# @app.route('/edit_area', methods=["POST"])
-# def edit_area():
-#     """This route is used to edit a device's area"""
-#
-#     # Get device's ID and new area
-#     ID = int(request.form["device_ID_editArea"])
-#     new_area = int(request.form["new_area"])
-#
-#     update_success = devices_dao.update_area(ID, new_area)
-#
-#     if update_success:
-#         flash("O valor da área foi atualizado.", "alert-success")
-#
-#     return redirect(url_for('dashboard'))
-#
-#
-# @app.route('/delete', methods=["POST"])
-# def delete():
-#     """This route is used to delete a device"""
-#
-#     # Gets device's ID
-#     ID = request.form['device_ID_delete']
-#
-#     device_deleted = devices_dao.delete_device(ID)
-#     if device_deleted:
-#         flash("O dispositivo foi deletado", "alert-danger")
-#
-#     return redirect(url_for('dashboard'))
-#
-#
 # @app.route('/get_max_people/<ID>')
 # def get_max_people(ID):
 #     """This route is used as an API to the devices information. A GET request is done in this URL, such as
