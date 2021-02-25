@@ -8,7 +8,7 @@ import jwt
 
 from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
-from .helper.helper import calculate_max_people, is_not_logged_in, verify_user, verify_password
+from .helper.helper import calculate_max_people, verify_user, verify_password, get_token
 
 from .helper.auth import requires_auth
 
@@ -57,8 +57,7 @@ def login():
 @api.route('/logout')
 @requires_auth
 def logout():
-    req = request.headers.get("Authorization", None)
-    token = req.split()[1]
+    token = get_token()
 
     token_dao.add_to_blacklist(token)
     res = {
@@ -72,9 +71,8 @@ def logout():
 @requires_auth
 def dashboard():
     """Route returns data about the user's dashboard."""
-    req = request.headers.get("Authorization", None)
+    token = get_token()
 
-    token = req.split()[1]
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
 
     # Gets user's devices list to display on table
@@ -88,8 +86,7 @@ def dashboard():
 @requires_auth
 def device_create():
     """Route for a user to create a new device."""
-    req = request.headers.get("Authorization", None)
-    token = req.split()[1]
+    token = get_token()
 
     device_data = request.get_json()
     shop_name = device_data["shopName"]

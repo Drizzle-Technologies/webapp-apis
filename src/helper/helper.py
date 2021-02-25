@@ -1,6 +1,7 @@
 from ..errors.InvalidArguementError import InvalidArgumentError
 
 from werkzeug.security import check_password_hash
+from flask import request
 
 
 def calculate_max_people(area):
@@ -23,6 +24,13 @@ def verify_password(user, password):
     if not check_password_hash(user.password, password):
         raise InvalidArgumentError({"code": "InvalidArgumentError",
                                     "description": "Password incorrect."}, 400)
+
+
+def get_token():
+    req = request.headers.get("Authorization", None)
+    token = req.split()[1]
+
+    return token
 
 
 def is_not_logged_in(session):
