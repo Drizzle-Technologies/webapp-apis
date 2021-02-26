@@ -1,7 +1,10 @@
 from ..errors.InvalidArguementError import InvalidArgumentError
+from ..database.dao import DeviceOccupancyDao
 
-from werkzeug.security import check_password_hash
 from flask import request
+import pandas as pd
+from datetime import datetime
+from werkzeug.security import check_password_hash
 
 
 def calculate_max_people(area):
@@ -31,6 +34,27 @@ def get_token():
     token = req.split()[1]
 
     return token
+
+
+def get_graph_data(ID_device, n_lines):
+
+    occupancy_sql, bind = DeviceOccupancyDao.retrieve_n_occupancy_observations(ID_device)
+    occupancy_record = pd.read_sql(occupancy_sql.statement, bind)
+
+    n_lines = n_lines or 25
+
+    if not occupancy_record.empty:
+
+        occupancy_record["timestamp"] = occupancy_record["timestamp"].apply(lambda x: datetime.fromisoformat(x))
+        occupancy_record.sort_values('timestamp', ignore_index=True, inplace=True)
+
+        if n_lines != 100:
+            occupancy_record = occupancy_record.tail(n_lines)
+
+    x_axis = occupancy_record["timestamp"].to_list()
+    y_axis = occupancy_record["occupancy"].to_list()
+
+    return x_axis, y_axis
 
 
 def is_not_logged_in(session):
