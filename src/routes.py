@@ -8,7 +8,10 @@ import jwt
 
 from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
-from .helper.helper import calculate_max_people, verify_user, verify_password, get_token
+from .controller.UserController import UserController
+from .controller.GraphController import GraphController
+
+from .helper.helper import get_token
 
 from .helper.auth import requires_auth
 
@@ -37,8 +40,8 @@ def login():
     user = user_dao.search_by_username(username)
 
     # If user or password are incorrect, raises InvalidArgumentError, which is treated in errors.handlers.py
-    verify_user(user)
-    verify_password(user, password)
+    UserController.verify_user(user)
+    UserController.verify_password(user, password)
 
     payload = {
         'userId': user.ID,
@@ -95,9 +98,7 @@ def device_create():
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
     user_ID = payload["userId"]
 
-    max_people = calculate_max_people(area)
-
-    values = user_ID, shop_name, area, max_people
+    values = user_ID, shop_name, area
 
     devices_dao.add_device(values)
 

@@ -5,6 +5,8 @@ import hashlib
 import secrets
 import jwt
 
+from ..controller.DeviceController import DeviceController
+
 
 class UserDao:
 
@@ -37,21 +39,12 @@ class UserDao:
 
 class DeviceDao:
 
-    @staticmethod
-    def calculate_max_people(area):
-        """Calculates the max number of people allowed in a building"""
-        standard_capacity = area * 2
-
-        # This numbers are defined for the 4th level of flexibilization of São Paulo state quarantine
-        pandemic_capacity = standard_capacity * 0.6
-        return int(pandemic_capacity)
-
     def add_device(self, values):
         """Method adds a new device to the Device table"""
 
         ID_user, shop_name, area = values
 
-        max_people = self.calculate_max_people(area)
+        max_people = DeviceController.calculate_max_people(area)
 
         ids = [device_id.ID for device_id in Device.query.all()]
         if not ids:
