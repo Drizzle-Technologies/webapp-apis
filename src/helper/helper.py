@@ -38,19 +38,21 @@ def get_graph_data(ID_device, n_lines):
 
     if not occupancy_record.empty:
 
+        # Converts timestamp strings to datetime class and sorts the dataframe by timestamp
+        occupancy_record["timestamp"] = occupancy_record["timestamp"].apply(lambda x: datetime.fromisoformat(x))
+
+        occupancy_record.sort_values('timestamp', ignore_index=True, inplace=True)
+
         if n_lines != 100:
             # Truncates dataframe if desired lines are different than 100
             occupancy_record = occupancy_record.tail(n_lines)
-
-        # Converts timestamp strings to datetime class and sorts the dataframe by timestamp
-        occupancy_record["timestamp"] = occupancy_record["timestamp"].apply(lambda x: datetime.fromisoformat(x))
-        occupancy_record.sort_values('timestamp', ignore_index=True, inplace=True)
+            occupancy_record.reset_index(drop=True, inplace=True)
 
         # Sets a different first label in the x axis
         first_datetime = occupancy_record.at[0, "timestamp"].strftime("%m/%d/%Y, %H:%M:%S")
 
         # Converts datetime to string again, but with HOUR:MINUTE:SECONDS format
-        occupancy_record["timestamp"] = occupancy_record["timestamp"].apply(lambda x: x.strftime("%H:%M:%S"))
+        occupancy_record["timestamp"] = occupancy_record["timestamp"].apply(lambda x: x.strftime("%H:%M"))
 
         # Creates the x_axis list and sets the first label to a datetime format
         x_axis = occupancy_record["timestamp"].to_list()
