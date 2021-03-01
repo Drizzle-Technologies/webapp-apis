@@ -12,6 +12,8 @@ from .helper.helper import calculate_max_people, verify_user, verify_password, g
 
 from .helper.auth import requires_auth
 
+import sqlite3
+
 
 secret_key = app.config["SECRET_KEY"]
 api = Blueprint('api', __name__)
