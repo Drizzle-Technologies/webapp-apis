@@ -1,10 +1,11 @@
 from .database import db, Device, User, DevicesOccupancy
 from .blacklist import red
-from ..helper.helper import calculate_max_people
 from werkzeug.security import generate_password_hash
 import hashlib
 import secrets
 import jwt
+
+from ..controller.DeviceController import DeviceController
 
 
 class UserDao:
@@ -38,11 +39,12 @@ class UserDao:
 
 class DeviceDao:
 
-    @staticmethod
-    def add_device(values):
+    def add_device(self, values):
         """Method adds a new device to the Device table"""
 
-        ID_user, shop_name, area, max_people = values
+        ID_user, shop_name, area = values
+
+        max_people = DeviceController.calculate_max_people(area)
 
         ids = [device_id.ID for device_id in Device.query.all()]
         if not ids:
@@ -94,11 +96,10 @@ class DeviceDao:
 
         return Device.query.filter_by(ID=ID).first()
 
-    @staticmethod
-    def update_max_people(device, area):
+    def update_max_people(self, device, area):
         """Updates the max number of people allowed in a device's building by passing the device's object"""
 
-        new_max_people = calculate_max_people(area)
+        new_max_people = self.calculate_max_people(area)
         device.max_people = new_max_people
 
         return True
