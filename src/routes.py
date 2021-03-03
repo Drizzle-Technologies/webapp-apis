@@ -9,6 +9,7 @@ import jwt
 from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
 from .controller.UserController import UserController
+from .controller.DeviceController import DeviceController
 from .controller.GraphController import GraphController
 
 from .helper.helper import get_token
@@ -98,9 +99,7 @@ def device_create():
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
     user_ID = payload["userId"]
 
-    values = user_ID, shop_name, area
-
-    devices_dao.add_device(values)
+    DeviceController(shop_name=shop_name, area=area, ID_user=user_ID).add_device()
 
     res = {
         'code': 'success',
@@ -118,7 +117,7 @@ def device_edit():
     ID_device = device_data["deviceID"]
     new_area = int(device_data["newArea"])
 
-    devices_dao.update_area(ID_device, new_area)
+    DeviceController(ID_device, area=new_area).update_area()
 
     res = {
         'code': 'success',

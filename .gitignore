@@ -1,6 +1,7 @@
 venv
 .idea
 __pycache__
+src/controller/__pycache__
 src/database/__pycache__
 src/helper/__pycache__
 src/errors/__pycache__
