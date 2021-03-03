@@ -14,13 +14,13 @@ class BaseConfig(object):
 class TestConfig(BaseConfig):
     DEBUG = True
     TESTING = True
-    WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
 
 # Development config
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
+    REDIS_URL = os.environ["REDIS_URL"]
     try:
         SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     except KeyError as e:
@@ -30,6 +30,7 @@ class DevelopmentConfig(BaseConfig):
 # Production config
 class ProductionConfig(BaseConfig):
     DEBUG = False
+    REDIS_URL = os.environ["REDIS_URL"]
     try:
         SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     except KeyError as e:

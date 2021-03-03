@@ -5,8 +5,6 @@ import hashlib
 import secrets
 import jwt
 
-from ..controller.DeviceController import DeviceController
-
 
 class UserDao:
 
