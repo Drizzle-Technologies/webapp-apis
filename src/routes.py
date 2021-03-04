@@ -16,8 +16,6 @@ from .helper.helper import get_token
 
 from .helper.auth import requires_auth
 
-import requests
-
 
 secret_key = app.config["SECRET_KEY"]
 api = Blueprint('api', __name__)
@@ -147,26 +145,19 @@ def device_delete():
     return jsonify(res), 200
 
 
-@api.route('occupancy/graph', methods=["GET"])
+@api.route('occupancy/graph/<ID_device>/<n_lines>', methods=["GET"])
 @requires_auth
-def occupancy_graph():
-   """Route to use the graph"""
-   url = 'http://127.0.0.1:5000/api/occupancy/graph/{ID_device}/{n_linhas}'.format(ID_device=ID_device, n_linhas=n_linhas)
-   payload = {'ID_devide': 'ID_device', 'n_linhas': 'n_linhas'}
-   r = requests.get(url, paramrs=payload)
+def occupancy_graph(ID_device, n_lines):
+    """Route to use the occupancy's graph"""
+    graph_controller = GraphController(int(ID_device), int(n_lines))
+    x_axis, y_axis = graph_controller.get_graph_data()
 
-   graph_controller = GraphController(r.ID_device, r.n_linhas)
+    res = {
+       'labels': x_axis,
+       'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
+    }
 
-   occupancy_datas = devices_occupancy_dao.retrieve_n_occupancy_observations(r.ID_device)
-
-   ax = graph_controller.get_graph_data()
-
-   res = {
-       'labels': ax,
-       'datasets': [{'label': 'occupancy ', 'data': occupancy_datas}]
-   }
-
-   return jsonify(res), 200
+    return jsonify(res), 200
 
 
 # @app.route('/create_user', methods=['POST'])
