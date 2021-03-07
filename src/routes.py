@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
+from flask import request, jsonify, Blueprint
 from flask import current_app as app
 
 from datetime import datetime, timedelta
@@ -8,7 +8,11 @@ import jwt
 
 from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
-from .helper.helper import calculate_max_people, is_not_logged_in, verify_user, verify_password
+from .controller.UserController import UserController
+from .controller.DeviceController import DeviceController
+from .controller.GraphController import GraphController
+
+from .helper.helper import get_token
 
 from .helper.auth import requires_auth
 
@@ -37,8 +41,8 @@ def login():
     user = user_dao.search_by_username(username)
 
     # If user or password are incorrect, raises InvalidArgumentError, which is treated in errors.handlers.py
-    verify_user(user)
-    verify_password(user, password)
+    UserController.verify_user(user)
+    UserController.verify_password(user, password)
 
     payload = {
         'userId': user.ID,
@@ -57,8 +61,7 @@ def login():
 @api.route('/logout')
 @requires_auth
 def logout():
-    req = request.headers.get("Authorization", None)
-    token = req.split()[1]
+    token = get_token()
 
     token_dao.add_to_blacklist(token)
     res = {
@@ -72,9 +75,8 @@ def logout():
 @requires_auth
 def dashboard():
     """Route returns data about the user's dashboard."""
-    req = request.headers.get("Authorization", None)
+    token = get_token()
 
-    token = req.split()[1]
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
 
     # Gets user's devices list to display on table
@@ -84,12 +86,11 @@ def dashboard():
     return jsonify(res), 200
 
 
-@api.route('/device/create')
+@api.route('/device/create', methods=["POST"])
 @requires_auth
 def device_create():
     """Route for a user to create a new device."""
-    req = request.headers.get("Authorization", None)
-    token = req.split()[1]
+    token = get_token()
 
     device_data = request.get_json()
     shop_name = device_data["shopName"]
@@ -98,15 +99,65 @@ def device_create():
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
     user_ID = payload["userId"]
 
-    max_people = calculate_max_people(area)
-
-    values = user_ID, shop_name, area, max_people
-
-    devices_dao.add_device(values)
+    DeviceController(shop_name=shop_name, area=area, ID_user=user_ID).add_device()
 
     res = {
         'code': 'success',
         'description': 'new device created'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('device/edit', methods=["PATCH"])
+@requires_auth
+def device_edit():
+    """Route for a user to edit a device values."""
+    device_data = request.get_json()
+    ID_device = device_data["deviceID"]
+    new_area = int(device_data["newArea"])
+
+    DeviceController(ID_device, area=new_area).update_area()
+
+    res = {
+        'code': 'success',
+        'description': 'device edited'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('device/delete', methods=["DELETE"])
+@requires_auth
+def device_delete():
+    """Route for a user to delete a device's list."""
+    device_data = request.get_json()
+    ID_list = device_data["idList"]
+
+    for ID in ID_list:
+        devices_dao.delete_device(ID)
+
+    res = {
+        'code': 'success',
+        'description': 'device deleted'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('occupancy/graph/<ID_device>/<n_lines>', methods=["GET"])
+@requires_auth
+def occupancy_graph(ID_device, n_lines):
+    """Route to use the occupancy's graph"""
+    graph_controller = GraphController(int(ID_device), int(n_lines))
+    x_axis, y_axis, first_datetime = graph_controller.get_graph_data()
+
+    res = {
+        'graph': {
+             'labels': x_axis,
+             'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
+        },
+        'firstDatetime': first_datetime
     }
 
     return jsonify(res), 200
@@ -128,58 +179,6 @@ def device_create():
 #     # Flashes success message
 #     if success:
 #         flash("Usuário foi criado.", "alert-success")
-#
-#     return redirect(url_for('dashboard'))
-#
-#
-# @app.route('/save_device', methods=["POST"])
-# def save_device():
-#     """This route is used to save new devices on the database. It cannot be directly accessed."""
-#
-#     # Each form input is saved in a different variable.
-#     ID_user = session["logged_in"]
-#     shop_name = request.form['shop_name']
-#     area = int(request.form['area'])
-#     max_people = calculate_max_people(area)
-#
-#     # We then form a tuple, which is roughly an immutable vector.
-#     new_device = (ID_user, shop_name, area, max_people)
-#
-#     # Finally we add the device to the database
-#     device_added = devices_dao.add_device(new_device)
-#     if device_added:
-#         flash("O dispositivo foi adicionado!", "alert-success")
-#
-#     # And we are redirected to our index page.
-#     return redirect(url_for('dashboard'))
-#
-#
-# @app.route('/edit_area', methods=["POST"])
-# def edit_area():
-#     """This route is used to edit a device's area"""
-#
-#     # Get device's ID and new area
-#     ID = int(request.form["device_ID_editArea"])
-#     new_area = int(request.form["new_area"])
-#
-#     update_success = devices_dao.update_area(ID, new_area)
-#
-#     if update_success:
-#         flash("O valor da área foi atualizado.", "alert-success")
-#
-#     return redirect(url_for('dashboard'))
-#
-#
-# @app.route('/delete', methods=["POST"])
-# def delete():
-#     """This route is used to delete a device"""
-#
-#     # Gets device's ID
-#     ID = request.form['device_ID_delete']
-#
-#     device_deleted = devices_dao.delete_device(ID)
-#     if device_deleted:
-#         flash("O dispositivo foi deletado", "alert-danger")
 #
 #     return redirect(url_for('dashboard'))
 #

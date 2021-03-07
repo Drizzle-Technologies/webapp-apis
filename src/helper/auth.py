@@ -60,7 +60,8 @@ def requires_auth(f):
             raise AuthError({"code": "invalid_token_error",
                              "description": "invalid token"}, 401)
 
-        except Exception:
+        except Exception as err:
+            print(err)
             raise AuthError({"code": "invalid_header",
                             "description":
                                 "Unable to parse authentication"
