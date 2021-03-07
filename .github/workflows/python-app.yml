@@ -13,13 +13,16 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      SECRET: secret
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+
+    - name: Set up Redis
     - uses: shogo82148/actions-setup-redis@v1
       with:
         redis-version: '6.x'
