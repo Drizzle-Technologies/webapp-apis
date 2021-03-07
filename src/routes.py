@@ -150,11 +150,14 @@ def device_delete():
 def occupancy_graph(ID_device, n_lines):
     """Route to use the occupancy's graph"""
     graph_controller = GraphController(int(ID_device), int(n_lines))
-    x_axis, y_axis = graph_controller.get_graph_data()
+    x_axis, y_axis, first_datetime = graph_controller.get_graph_data()
 
     res = {
-       'labels': x_axis,
-       'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
+        'graph': {
+             'labels': x_axis,
+             'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
+        },
+        'firstDatetime': first_datetime
     }
 
     return jsonify(res), 200

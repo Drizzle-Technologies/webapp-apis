@@ -29,14 +29,7 @@ class GraphController:
         # Converts datetime to string again, but with HOUR:MINUTE:SECONDS format
         df["timestamp"] = df["timestamp"].apply(lambda x: x.strftime("%H:%M"))
 
-        # Creates the x_axis list and sets the first label to a datetime format
-        x_axis = df["timestamp"].to_list()
-        x_axis[0] = first_datetime
-
-        # Creates the y_axis list
-        y_axis = df["occupancy"].to_list()
-
-        return x_axis, y_axis
+        return df["timestamp"], first_datetime
 
     def get_graph_data(self):
         """function processes retrieved data from the observations"""
@@ -56,7 +49,15 @@ class GraphController:
                 occupancy_record = occupancy_record.tail(n_lines)
                 occupancy_record.reset_index(drop=True, inplace=True)
 
-            ax = self.format_time_strings(occupancy_record)
+            timestamp, first_datetime = self.format_time_strings(occupancy_record)
+
+            # Creates the x_axis list and sets the first label to a datetime format
+            x_axis = timestamp.to_list()
+
+            # Creates the y_axis list
+            y_axis = occupancy_record["occupancy"].to_list()
+
+            ax = (x_axis, y_axis, first_datetime)
 
         else:
             ax = ([], [])
