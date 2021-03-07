@@ -20,14 +20,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    - name: Set up Redis
-      run: |
-        wget http://download.redis.io/redis-stable.tar.gz
-        tar xvzf redis-stable.tar.gz
-        cd redis-stable
-        make
-        cd src
-        redis-server
+    - uses: shogo82148/actions-setup-redis@v1
+      with:
+        redis-version: '6.x'
+    - run: redis-cli ping
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
