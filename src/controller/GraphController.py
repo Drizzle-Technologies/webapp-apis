@@ -15,21 +15,11 @@ class GraphController:
     def sort_by_time(df):
 
         # Converts timestamp strings to datetime class and sorts the dataframe by timestamp
-        df["timestamp"] = df["timestamp"].apply(lambda x: datetime.fromisoformat(x))
-        df.sort_values('timestamp', ignore_index=True, inplace=True)
+        df["sort"] = df["timestamp"].apply(lambda x: datetime.fromisoformat(x))
+        df.sort_values('sort', ignore_index=True, inplace=True)
+        df.drop(["sort"], axis=1, inplace=True)
 
         return df
-
-    @staticmethod
-    def format_time_strings(df):
-
-        # Sets a different first label in the x axis
-        first_datetime = df.at[0, "timestamp"].strftime("%m/%d/%Y, %H:%M:%S")
-
-        # Converts datetime to string again, but with HOUR:MINUTE:SECONDS format
-        df["timestamp"] = df["timestamp"].apply(lambda x: x.strftime("%H:%M"))
-
-        return df["timestamp"], first_datetime
 
     def get_graph_data(self):
         """function processes retrieved data from the observations"""
@@ -49,10 +39,11 @@ class GraphController:
                 occupancy_record = occupancy_record.tail(n_lines)
                 occupancy_record.reset_index(drop=True, inplace=True)
 
-            timestamp, first_datetime = self.format_time_strings(occupancy_record)
+            # Sets a different first label in the x axis
+            first_datetime = occupancy_record.at[0, "timestamp"]
 
             # Creates the x_axis list and sets the first label to a datetime format
-            x_axis = timestamp.to_list()
+            x_axis = occupancy_record["timestamp"].to_list()
 
             # Creates the y_axis list
             y_axis = occupancy_record["occupancy"].to_list()
