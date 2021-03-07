@@ -1,5 +1,5 @@
-import os
-import redis
+from flask_redis import FlaskRedis
 
-red = redis.StrictRedis(host=os.environ["REDIS_HOST"], port=os.environ["REDIS_PORT"], password=os.environ["REDIS_PASSWORD"])
+
+red = FlaskRedis()
 

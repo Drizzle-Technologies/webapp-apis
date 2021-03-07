@@ -1,9 +1,11 @@
 """Initialize Flask app."""
 import os
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
+from mockredis import MockRedis
 
 from .database.database import db
+from .database.blacklist import red
 
 from .errors.AuthError import AuthError
 
@@ -20,6 +22,13 @@ def init_app():
 
     # Database connected to the app
     db.init_app(app)
+
+    # Redis connected to the app
+    if app.config["TESTING"]:
+        red.from_custom_provider(MockRedis)
+
+    red.init_app(app)
+
 
     with app.app_context():
         # Creates database tables if they don't already exist

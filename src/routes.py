@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, Blueprint
+from flask import request, jsonify, Blueprint
 from flask import current_app as app
 
 from datetime import datetime, timedelta
@@ -8,7 +8,11 @@ import jwt
 
 from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
 
-from .helper.helper import calculate_max_people, verify_user, verify_password, get_token
+from .controller.UserController import UserController
+from .controller.DeviceController import DeviceController
+from .controller.GraphController import GraphController
+
+from .helper.helper import get_token
 
 from .helper.auth import requires_auth
 
@@ -37,8 +41,8 @@ def login():
     user = user_dao.search_by_username(username)
 
     # If user or password are incorrect, raises InvalidArgumentError, which is treated in errors.handlers.py
-    verify_user(user)
-    verify_password(user, password)
+    UserController.verify_user(user)
+    UserController.verify_password(user, password)
 
     payload = {
         'userId': user.ID,
@@ -95,11 +99,7 @@ def device_create():
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
     user_ID = payload["userId"]
 
-    max_people = calculate_max_people(area)
-
-    values = user_ID, shop_name, area, max_people
-
-    devices_dao.add_device(values)
+    DeviceController(shop_name=shop_name, area=area, ID_user=user_ID).add_device()
 
     res = {
         'code': 'success',
@@ -117,7 +117,7 @@ def device_edit():
     ID_device = device_data["deviceID"]
     new_area = int(device_data["newArea"])
 
-    devices_dao.update_area(ID_device, new_area)
+    DeviceController(ID_device, area=new_area).update_area()
 
     res = {
         'code': 'success',
@@ -140,6 +140,24 @@ def device_delete():
     res = {
         'code': 'success',
         'description': 'device deleted'
+    }
+
+    return jsonify(res), 200
+
+
+@api.route('occupancy/graph/<ID_device>/<n_lines>', methods=["GET"])
+@requires_auth
+def occupancy_graph(ID_device, n_lines):
+    """Route to use the occupancy's graph"""
+    graph_controller = GraphController(int(ID_device), int(n_lines))
+    x_axis, y_axis, first_datetime = graph_controller.get_graph_data()
+
+    res = {
+        'graph': {
+             'labels': x_axis,
+             'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
+        },
+        'firstDatetime': first_datetime
     }
 
     return jsonify(res), 200

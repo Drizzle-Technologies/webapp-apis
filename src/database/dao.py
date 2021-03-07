@@ -1,6 +1,5 @@
 from .database import db, Device, User, DevicesOccupancy
 from .blacklist import red
-from ..helper.helper import calculate_max_people
 from werkzeug.security import generate_password_hash
 import hashlib
 import secrets
@@ -39,10 +38,8 @@ class UserDao:
 class DeviceDao:
 
     @staticmethod
-    def add_device(values):
+    def add_device(ID_user, shop_name, area, max_people):
         """Method adds a new device to the Device table"""
-
-        ID_user, shop_name, area, max_people = values
 
         ids = [device_id.ID for device_id in Device.query.all()]
         if not ids:
@@ -95,25 +92,16 @@ class DeviceDao:
         return Device.query.filter_by(ID=ID).first()
 
     @staticmethod
-    def update_max_people(device, area):
-        """Updates the max number of people allowed in a device's building by passing the device's object"""
-
-        new_max_people = calculate_max_people(area)
-        device.max_people = new_max_people
-
-        return True
-
-    def update_area(self, ID, new_area):
+    def update_area(ID, new_area, new_max_people):
         """Updates the area and max_people through the device's ID in the Device table"""
 
         device = Device.query.filter_by(ID=ID).first()
         device.area = new_area
 
-        has_succeded = self.update_max_people(device, device.area)
+        # updating area implicates updating max_people
+        device.max_people = new_max_people
 
         db.session.commit()
-
-        return True and has_succeded
 
 
 class DeviceOccupancyDao:
