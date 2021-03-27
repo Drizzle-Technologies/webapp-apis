@@ -84,8 +84,8 @@ def logout():
     return jsonify(res), 200
 
 
-@bearer
 @api.route('/dashboard')
+@bearer
 def dashboard():
     """Route returns data about the user's dashboard."""
     token = Access.get_token()
@@ -99,8 +99,8 @@ def dashboard():
     return jsonify(res), 200
 
 
-@bearer
 @api.route('/device/create', methods=["POST"])
+@bearer
 def device_create():
     """Route for a user to create a new device."""
     token = Access.get_token()
@@ -122,8 +122,8 @@ def device_create():
     return jsonify(res), 200
 
 
-@bearer
 @api.route('device/edit', methods=["PATCH"])
+@bearer
 def device_edit():
     """Route for a user to edit a device values."""
     device_data = request.get_json()
@@ -140,8 +140,8 @@ def device_edit():
     return jsonify(res), 200
 
 
-@bearer
 @api.route('device/delete', methods=["DELETE"])
+@bearer
 def device_delete():
     """Route for a user to delete a device's list."""
     device_data = request.get_json()
@@ -158,8 +158,8 @@ def device_delete():
     return jsonify(res), 200
 
 
-@bearer
 @api.route('occupancy/graph/<ID_device>/<n_lines>', methods=["GET"])
+@bearer
 def occupancy_graph(ID_device, n_lines):
     """Route to use the occupancy's graph"""
     graph_controller = GraphController(int(ID_device), int(n_lines))
