@@ -1,20 +1,17 @@
 from flask import request, jsonify, Blueprint
 from flask import current_app as app
 
-from datetime import datetime, timedelta
-import pytz
-
 import jwt
 
-from .database.dao import UserDao, DeviceDao, DeviceOccupancyDao, TokenDao
+from .database.dao import UserDao, DeviceDao
 
 from .controller.UserController import UserController
 from .controller.DeviceController import DeviceController
 from .controller.GraphController import GraphController
 
-from .helper.helper import get_token
 
-from .helper.auth import requires_auth
+from .auth.auth import bearer, refresh
+from .auth.tokens import Access, Refresh
 
 
 secret_key = app.config["SECRET_KEY"]
@@ -22,8 +19,6 @@ api = Blueprint('api', __name__)
 
 user_dao = UserDao()
 devices_dao = DeviceDao()
-devices_occupancy_dao = DeviceOccupancyDao()
-token_dao = TokenDao()
 
 
 # This is how Flask routes work. The app.route decorator sets a route to our site. For example: imagine our app is
@@ -44,26 +39,44 @@ def login():
     UserController.verify_user(user)
     UserController.verify_password(user, password)
 
-    payload = {
-        'userId': user.ID,
-        "exp": datetime.utcnow() + timedelta(minutes=15)
-    }
+    access_token = Access.generate(user.ID)
+    refresh_token = Refresh.generate(user.ID)
 
-    token = jwt.encode(payload, secret_key, algorithm="HS256")
     res = {
-            'authorization': token,
-            'timestamp': datetime.now(pytz.timezone("America/Sao_Paulo")).isoformat()
+        'authorization': access_token,
+        'refreshToken': refresh_token,
     }
 
     return jsonify(res), 200
 
 
-@api.route('/logout')
-@requires_auth
-def logout():
-    token = get_token()
+@api.route('/refresh', methods=["POST"])
+def update_token():
+    """Route used to refresh the Access Token"""
+    req = request.get_json()
+    token = req["refreshToken"]
 
-    token_dao.add_to_blacklist(token)
+    refresh_token, access_token = refresh(token)
+
+    res = {
+        "accessToken": access_token,
+        "refreshToken": refresh_token
+    }
+
+    return jsonify(res), 200
+
+
+@bearer
+@api.route('/logout', methods=["POST"])
+def logout():
+    access_token = Access.get_token()
+
+    req = request.get_json()
+    refresh_token = req["refreshToken"]
+
+    Access.invalidate(access_token)
+    Refresh.invalidate(refresh_token)
+
     res = {
         'code': 'success',
         'description': 'logout successful'
@@ -72,25 +85,25 @@ def logout():
 
 
 @api.route('/dashboard')
-@requires_auth
+@bearer
 def dashboard():
     """Route returns data about the user's dashboard."""
-    token = get_token()
+    token = Access.get_token()
 
-    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+    user_id = Access.decode(token)
 
     # Gets user's devices list to display on table
-    devices = devices_dao.get_user_devices(payload["userId"])
+    devices = devices_dao.get_user_devices(user_id)
 
     res = {'devices': devices}
     return jsonify(res), 200
 
 
 @api.route('/device/create', methods=["POST"])
-@requires_auth
+@bearer
 def device_create():
     """Route for a user to create a new device."""
-    token = get_token()
+    token = Access.get_token()
 
     device_data = request.get_json()
     shop_name = device_data["shopName"]
@@ -110,7 +123,7 @@ def device_create():
 
 
 @api.route('device/edit', methods=["PATCH"])
-@requires_auth
+@bearer
 def device_edit():
     """Route for a user to edit a device values."""
     device_data = request.get_json()
@@ -128,7 +141,7 @@ def device_edit():
 
 
 @api.route('device/delete', methods=["DELETE"])
-@requires_auth
+@bearer
 def device_delete():
     """Route for a user to delete a device's list."""
     device_data = request.get_json()
@@ -146,7 +159,7 @@ def device_delete():
 
 
 @api.route('occupancy/graph/<ID_device>/<n_lines>', methods=["GET"])
-@requires_auth
+@bearer
 def occupancy_graph(ID_device, n_lines):
     """Route to use the occupancy's graph"""
     graph_controller = GraphController(int(ID_device), int(n_lines))
@@ -164,14 +177,13 @@ def occupancy_graph(ID_device, n_lines):
 
 
 @api.route('/user', methods=["GET"])
-@requires_auth
-def user():
+@bearer
+def user_general():
     """Route returns the name and username through the token"""
-    token = get_token()
-    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-    user_ID = payload["userId"]
+    token = Access.get_token()
+    user_id = Access.decode(token)
 
-    user = user_dao.search_by_id(user_ID)
+    user = user_dao.search_by_id(user_id)
 
     res = {
         'name': user.name,

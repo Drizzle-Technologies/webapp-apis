@@ -34,36 +34,44 @@ class AppTestCase(BaseTestCase):
         data = json.dumps({'username': username, 'password': password})
         response = self.client.post('/api/login', data=data, content_type='application/json')
         try:
-            token = json.loads(response.data)["authorization"]
+            access_token = json.loads(response.data)["authorization"]
+            refresh_token = json.loads(response.data)["refreshToken"]
         except KeyError:
-            token = None
+            access_token = None
+            refresh_token = None
 
-        return response, token
+        return response, access_token, refresh_token
 
     def test_index(self):
         response = self.client.get('/api/')
         self.assertEqual(404, response.status_code)
 
     def test_login_auth_correct(self):
-        response, _ = self.login('test', 'test123')
+        response, _, _ = self.login('test', 'test123')
         self.assertEqual(200, response.status_code)
 
         data = response.data
         self.assertIn(b'authorization', data)
 
     def test_login_auth_username_incorrect(self):
-        response, _ = self.login('test' + 'x', 'test123')
+        response, _, _ = self.login('test' + 'x', 'test123')
         self.assertEqual(404, response.status_code)
 
     def test_login_auth_password_incorrect(self):
-        response, _ = self.login('test', 'test123' + 'x')
+        response, _, _ = self.login('test', 'test123' + 'x')
         self.assertEqual(400, response.status_code)
 
     def test_logout(self):
-        _, token = self.login('test', 'test123')
-        response = self.client.get('/api/logout',
-                                   headers={'Authorization': f'Bearer {token}'})
-        print(f'Bearer {token}')
+        _, access_token, refresh_token = self.login('test', 'test123')
+
+        data = json.dumps({'refreshToken': refresh_token})
+
+        response = self.client.post('/api/logout',
+                                    headers={'Authorization': f'Bearer {access_token}'},
+                                    data=data,
+                                    content_type="application/json")
+
+        print(f'Bearer {access_token}')
         self.assertEqual(200, response.status_code)
 
     def test_dashboard_protection(self):
@@ -71,7 +79,7 @@ class AppTestCase(BaseTestCase):
         self.assertEqual(401, response.status_code)
 
     def test_dashboard_content(self):
-        _, token = self.login('test', 'test123')
+        _, token, _ = self.login('test', 'test123')
         response = self.client.get('/api/dashboard',
                                    headers={'Authorization': f'Bearer {token}'})
         self.assertIn(b'devices', response.data)
@@ -85,7 +93,7 @@ class AppTestCase(BaseTestCase):
     #     self.assertIn(b'admin', response.data)
 
     def test_device_create(self):
-        _, token = self.login('test', 'test123')
+        _, token, _ = self.login('test', 'test123')
         data = json.dumps({
                            'deviceID': 1,
                            'shopName': 'test',
@@ -98,7 +106,7 @@ class AppTestCase(BaseTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_device_edit(self):
-        _, token = self.login('test', 'test123')
+        _, token, _ = self.login('test', 'test123')
         data = json.dumps({'deviceID': 1, 'newArea': '200'})
 
         response = self.client.patch('/api/device/edit',
@@ -108,7 +116,7 @@ class AppTestCase(BaseTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_device_delete(self):
-        _, token = self.login('test', 'test123')
+        _, token, _ = self.login('test', 'test123')
         data = json.dumps({'idList': [1]})
         response = self.client.delete('/api/device/delete',
                                       data=data,

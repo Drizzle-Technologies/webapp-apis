@@ -1,8 +1,11 @@
 from .database import db, Device, User, DevicesOccupancy
-from .blacklist import red
+from .blacklist import blacklist
+from .whitelist import whitelist
+
 from werkzeug.security import generate_password_hash
 import hashlib
 import secrets
+
 import jwt
 
 
@@ -142,7 +145,7 @@ class DeviceOccupancyDao:
         db.session.commit()
 
 
-class TokenDao:
+class AccessTokenDao:
 
     @staticmethod
     def generate_hash_token(token):
@@ -152,18 +155,35 @@ class TokenDao:
 
         return token_hash
 
-    def add_to_blacklist(self, token):
+    def add(self, token, expiration):
 
         token_hash = self.generate_hash_token(token)
-        red.set(token_hash, "")
+        blacklist.set(token_hash, "", ex=expiration)
 
         return True
 
-    def search_in_blacklist(self, token):
+    def search(self, token):
         token_hash = self.generate_hash_token(token)
-        res = red.exists(token_hash)
+        res = blacklist.exists(token_hash)
 
         if res:
             raise jwt.InvalidTokenError
 
-        return True
+        return False
+
+
+class RefreshTokenDao:
+
+    @staticmethod
+    def add(token, user_id, expiration):
+        whitelist.set(token, user_id, ex=expiration)
+
+        return token
+
+    @staticmethod
+    def search(token):
+        return whitelist.get(token)
+
+    @staticmethod
+    def delete(token):
+        whitelist.delete(token)

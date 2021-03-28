@@ -5,7 +5,8 @@ from flask_cors import CORS
 from mockredis import MockRedis
 
 from .database.database import db
-from .database.blacklist import red
+from .database.blacklist import blacklist
+from .database.whitelist import whitelist
 
 from .errors.AuthError import AuthError
 
@@ -25,10 +26,11 @@ def init_app():
 
     # Redis connected to the app
     if app.config["TESTING"]:
-        red.from_custom_provider(MockRedis)
+        blacklist.from_custom_provider(MockRedis)
+        whitelist.from_custom_provider(MockRedis)
 
-    red.init_app(app)
-
+    blacklist.init_app(app)
+    whitelist.init_app(app)
 
     with app.app_context():
         # Creates database tables if they don't already exist
