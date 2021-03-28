@@ -176,6 +176,24 @@ def occupancy_graph(ID_device, n_lines):
     return jsonify(res), 200
 
 
+@api.route('/user', methods=["GET"])
+@requires_auth
+def user():
+    """Route returns the name and username through the token"""
+    token = get_token()
+    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+    user_ID = payload["userId"]
+
+    user = user_dao.search_by_id(user_ID)
+
+    res = {
+        'name': user.name,
+        'username': user.username
+    }
+
+    return jsonify(res), 200
+
+
 # @app.route('/create_user', methods=['POST'])
 # def create_user():
 #     """This route creates a new user."""

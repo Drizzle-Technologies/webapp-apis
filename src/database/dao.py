@@ -37,6 +37,11 @@ class UserDao:
 
         return True
 
+    def search_by_id(self, ID):
+        """Method searches the username through the ID"""
+
+        return User.query.filter_by(ID=ID).first()
+
 
 class DeviceDao:
 
