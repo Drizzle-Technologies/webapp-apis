@@ -171,12 +171,11 @@ def user():
     payload = jwt.decode(token, secret_key, algorithms=["HS256"])
     user_ID = payload["userId"]
 
-    username = user_dao.get_username(user_ID)
-    user = user_dao.search_by_username(username)
+    user = user_dao.search_by_id(user_ID)
 
     res = {
         'name': user.name,
-        'username': username
+        'username': user.username
     }
 
     return jsonify(res), 200
