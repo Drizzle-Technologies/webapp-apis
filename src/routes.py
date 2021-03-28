@@ -177,14 +177,13 @@ def occupancy_graph(ID_device, n_lines):
 
 
 @api.route('/user', methods=["GET"])
-@requires_auth
-def user():
+@bearer
+def user_general():
     """Route returns the name and username through the token"""
-    token = get_token()
-    payload = jwt.decode(token, secret_key, algorithms=["HS256"])
-    user_ID = payload["userId"]
+    token = Access.get_token()
+    user_id = Access.decode(token)
 
-    user = user_dao.search_by_id(user_ID)
+    user = user_dao.search_by_id(user_id)
 
     res = {
         'name': user.name,
