@@ -1,7 +1,7 @@
 import os
 from functools import wraps
 import jwt
-from ..database.dao import AccessTokenDao
+from ..dao import AccessTokenDao
 
 from .tokens import Access, Refresh
 

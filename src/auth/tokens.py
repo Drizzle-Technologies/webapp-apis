@@ -9,7 +9,7 @@ import jwt
 from ..errors.AuthError import AuthError
 from ..errors.InvalidArguementError import InvalidArgumentError
 
-from ..database.dao import AccessTokenDao, RefreshTokenDao
+from ..dao import AccessTokenDao, RefreshTokenDao
 
 import secrets
 

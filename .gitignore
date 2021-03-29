@@ -3,6 +3,7 @@ venv
 __pycache__
 src/controller/__pycache__
 src/database/__pycache__
+src/dao/__pycache__
 src/auth/__pycache__
 src/errors/__pycache__
 src/__pycache__

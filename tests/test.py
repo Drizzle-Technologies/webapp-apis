@@ -4,7 +4,7 @@ import json
 
 from wsgi import app
 from src import db
-from src.database.dao import UserDao, DeviceOccupancyDao
+from src.dao import UserDao, DeviceOccupancyDao
 from src.controller.DeviceController import DeviceController
 
 
@@ -75,12 +75,12 @@ class AppTestCase(BaseTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_dashboard_protection(self):
-        response = self.client.get('/api/dashboard', follow_redirects=True)
+        response = self.client.get('/api/user/devices', follow_redirects=True)
         self.assertEqual(401, response.status_code)
 
     def test_dashboard_content(self):
         _, token, _ = self.login('test', 'test123')
-        response = self.client.get('/api/dashboard',
+        response = self.client.get('/api/user/devices',
                                    headers={'Authorization': f'Bearer {token}'})
         self.assertIn(b'devices', response.data)
 
