@@ -3,7 +3,7 @@ from flask import current_app as app
 
 import jwt
 
-from .database.dao import UserDao, DeviceDao
+from .dao import UserDao, DeviceDao
 
 from .controller.UserController import UserController
 from .controller.DeviceController import DeviceController
@@ -84,9 +84,9 @@ def logout():
     return jsonify(res), 200
 
 
-@api.route('/dashboard')
+@api.route('/user/devices')
 @bearer
-def dashboard():
+def user_devices():
     """Route returns data about the user's dashboard."""
     token = Access.get_token()
 
@@ -96,6 +96,23 @@ def dashboard():
     devices = devices_dao.get_user_devices(user_id)
 
     res = {'devices': devices}
+    return jsonify(res), 200
+
+
+@api.route('/user', methods=["GET"])
+@bearer
+def user_general():
+    """Route returns the name and username through the token"""
+    token = Access.get_token()
+    user_id = Access.decode(token)
+
+    user = user_dao.search_by_id(user_id)
+
+    res = {
+        'name': user.name,
+        'username': user.username
+    }
+
     return jsonify(res), 200
 
 
@@ -171,23 +188,6 @@ def occupancy_graph(ID_device, n_lines):
              'datasets': [{'label': 'Histórico de ocupação', 'data': y_axis}]
         },
         'firstDatetime': first_datetime
-    }
-
-    return jsonify(res), 200
-
-
-@api.route('/user', methods=["GET"])
-@bearer
-def user_general():
-    """Route returns the name and username through the token"""
-    token = Access.get_token()
-    user_id = Access.decode(token)
-
-    user = user_dao.search_by_id(user_id)
-
-    res = {
-        'name': user.name,
-        'username': user.username
     }
 
     return jsonify(res), 200

@@ -1,4 +1,4 @@
-from ..database.dao import DeviceDao
+from ..dao import DeviceDao
 
 
 class DeviceController:
